@@ -1,0 +1,238 @@
+# Default Pint Unit Definitions
+# Based on SI and common unit systems
+
+# Prefixes
+yocto- = 1e-24 = y-
+zepto- = 1e-21 = z-
+atto- = 1e-18 = a-
+femto- = 1e-15 = f-
+pico- = 1e-12 = p-
+nano- = 1e-9 = n-
+micro- = 1e-6 = µ- = μ- = u-
+milli- = 1e-3 = m-
+centi- = 1e-2 = c-
+deci- = 1e-1 = d-
+deca- = 1e+1 = da- = deka-
+hecto- = 1e2 = h-
+kilo- = 1e3 = k-
+mega- = 1e6 = M-
+giga- = 1e9 = G-
+tera- = 1e12 = T-
+peta- = 1e15 = P-
+exa- = 1e18 = E-
+zetta- = 1e21 = Z-
+yotta- = 1e24 = Y-
+ronto- = 1e-27 = r-
+quecto- = 1e-30 = q-
+ronna- = 1e27 = R-
+quetta- = 1e30 = Q-
+
+# Binary prefixes
+kibi- = 2**10 = Ki-
+mebi- = 2**20 = Mi-
+gibi- = 2**30 = Gi-
+tebi- = 2**40 = Ti-
+pebi- = 2**50 = Pi-
+exbi- = 2**60 = Ei-
+
+# Base dimensions
+[length]
+[mass]
+[time]
+[current] = [electric_current]
+[temperature]
+[substance] = [amount]
+[luminosity]
+
+# Derived dimensions
+[area] = [length] ** 2
+[volume] = [length] ** 3
+[velocity] = [length] / [time]
+[acceleration] = [velocity] / [time]
+[force] = [mass] * [acceleration]
+[energy] = [force] * [length]
+[power] = [energy] / [time]
+[pressure] = [force] / [area]
+[frequency] = 1 / [time]
+
+# SI base units
+meter = [length] = m = metre
+second = [time] = s = sec
+gram = [mass] = g
+ampere = [current] = A = amp
+kelvin = [temperature] = K = degK = °K = degree_Kelvin = degreeK
+mole = [substance] = mol
+candela = [luminosity] = cd = candle
+
+# Derived mass unit
+kilogram = 1e3 * gram = kg
+
+# Length units
+angstrom = 1e-10 * meter = Å = ångström = Å = angstroms
+micron = micrometer = µm
+fermi = femtometer = fm
+light_year = 9.4607304725808e15 * meter = ly = lightyear
+astronomical_unit = 149597870700 * meter = au = AU
+parsec = 3.085677581e16 * meter = pc
+inch = 2.54 * centimeter = in = international_inch = inches = international_inches
+foot = 12 * inch = ft = international_foot = feet = international_feet
+yard = 3 * foot = yd = international_yard
+mile = 5280 * foot = mi = international_mile
+nautical_mile = 1852 * meter = nmi
+
+# Time units
+minute = 60 * second = min
+hour = 60 * minute = h = hr
+day = 24 * hour = d
+week = 7 * day
+year = 365.25 * day = a = yr = julian_year
+month = year / 12
+
+# Area units
+are = 100 * meter ** 2
+hectare = 100 * are = ha
+acre = 4046.8564224 * meter ** 2 = international_acre
+barn = 1e-28 * meter ** 2 = b
+
+# Volume units
+liter = 1e-3 * meter ** 3 = l = L = litre
+cc = centimeter ** 3 = cubic_centimeter
+gallon = 3.785411784 * liter = gal = US_liquid_gallon
+quart = gallon / 4 = qt = US_liquid_quart
+pint = quart / 2 = pt = US_liquid_pint
+cup = pint / 2 = US_liquid_cup
+fluid_ounce = cup / 8 = fl_oz = US_fluid_ounce = US_liquid_ounce
+tablespoon = fluid_ounce / 2 = tbsp = Tbsp = Tblsp = tblsp
+teaspoon = tablespoon / 3 = tsp
+imperial_gallon = 4.54609 * liter = UK_gallon
+imperial_quart = imperial_gallon / 4
+imperial_pint = imperial_quart / 2
+imperial_cup = imperial_pint / 2
+imperial_fluid_ounce = imperial_cup / 10 = UK_fluid_ounce
+oil_barrel = 42 * gallon = bbl = oil_bbl
+
+# Mass units
+metric_ton = 1e3 * kilogram = t = tonne
+unified_atomic_mass_unit = 1.66053906660e-27 * kilogram = u = amu = dalton = Da
+pound = 453.59237 * gram = lb = avoirdupois_pound = lbs
+ounce = pound / 16 = oz = avoirdupois_ounce
+stone = 14 * pound
+short_ton = 2000 * pound = ton
+long_ton = 2240 * pound
+grain = pound / 7000 = gr
+carat = 200 * milligram = ct = karat
+troy_ounce = 480 * grain = ozt = troy_oz
+troy_pound = 12 * troy_ounce
+
+# Force units
+newton = kilogram * meter / second ** 2 = N
+dyne = gram * centimeter / second ** 2 = dyn
+pound_force = 4.4482216152605 * newton = lbf = force_pound
+kilogram_force = 9.80665 * newton = kgf = force_kilogram = pond
+
+# Energy units
+joule = newton * meter = J
+erg = dyne * centimeter
+calorie = 4.184 * joule = cal = thermochemical_calorie
+kilocalorie = 1e3 * calorie = kcal = Calorie = large_calorie = food_calorie
+british_thermal_unit = 1055.05585262 * joule = Btu = BTU = btu
+electron_volt = 1.602176634e-19 * joule = eV
+watt_hour = watt * hour = Wh = watthour
+kilowatt_hour = 1e3 * watt_hour = kWh
+
+# Power units
+watt = joule / second = W
+horsepower = 745.69987158227 * watt = hp = UK_horsepower = hydraulic_horsepower
+metric_horsepower = 735.49875 * watt
+
+# Pressure units
+pascal = newton / meter ** 2 = Pa
+bar = 1e5 * pascal
+millibar = 1e-3 * bar = mbar = mb
+atmosphere = 101325 * pascal = atm = standard_atmosphere
+torr = atm / 760
+millimeter_Hg = 133.322387415 * pascal = mmHg = mm_Hg = millimeter_Hg_0C
+centimeter_Hg = 10 * millimeter_Hg = cmHg = cm_Hg
+inch_Hg = 3386.389 * pascal = inHg = in_Hg
+pound_force_per_square_inch = pound_force / inch ** 2 = psi
+
+# Velocity units
+knot = nautical_mile / hour = kt = knot_international = international_knot
+mile_per_hour = mile / hour = mph
+kilometer_per_hour = kilometer / hour = kph
+
+# Frequency units
+hertz = 1 / second = Hz
+revolutions_per_minute = 1 / minute = rpm = RPM
+revolutions_per_second = 1 / second = rps
+
+# Angle units
+radian = [] = rad
+turn = 6.283185307179586 * radian = revolution = cycle = circle
+degree = turn / 360 = deg = arcdeg = arcdegree = angular_degree = °
+arcminute = degree / 60 = arcmin = arc_minute = angular_minute
+arcsecond = arcminute / 60 = arcsec = arc_second = angular_second
+steradian = radian ** 2 = sr
+
+# Electrical units
+volt = watt / ampere = V
+coulomb = ampere * second = C
+farad = coulomb / volt = F
+ohm = volt / ampere = Ω
+siemens = ampere / volt = S = mho
+henry = volt * second / ampere = H
+weber = volt * second = Wb
+tesla = weber / meter ** 2 = T
+
+# Magnetic units
+gauss = 1e-4 * tesla = G
+maxwell = 1e-8 * weber = Mx
+oersted = 79.5774715459 * ampere / meter = Oe
+
+# Information units
+bit = []
+byte = 8 * bit = B = octet
+baud = bit / second = Bd
+
+# Radiation units
+becquerel = 1 / second = Bq
+curie = 3.7e10 * becquerel = Ci
+rutherford = 1e6 * becquerel = Rd
+gray = joule / kilogram = Gy
+sievert = joule / kilogram = Sv
+rem = sievert / 100
+roentgen = 2.58e-4 * coulomb / kilogram = R
+rad_dose = 0.01 * gray
+
+# Temperature units
+degree_Celsius = kelvin; offset: 273.15 = °C = degC = degreeC = degree_centigrade = celsius
+degree_Fahrenheit = 5 / 9 * kelvin; offset: 255.372222 = °F = degF = degreeF = fahrenheit
+degree_Rankine = 5 / 9 * kelvin = °R = degR = rankine
+
+# Temperature differences
+delta_degC = kelvin = delta_celsius = delta_°C
+delta_degF = 5 / 9 * kelvin = delta_fahrenheit = delta_°F
+
+# Logarithmic units
+decibel = 1 ; logbase: 10; logfactor: 10 = dB
+bell = 1 ; logbase: 10; logfactor: 1 = B
+neper = 1 ; logbase: 2.718281828459045; logfactor: 0.5 = Np
+octave = 1 ; logbase: 2; logfactor: 1 = oct
+decade = 1 ; logbase: 10; logfactor: 1
+decibelmilliwatt = 1e-3 * watt; logbase: 10; logfactor: 10 = dBm
+
+# Luminous units
+lumen = candela * steradian = lm
+lux = lumen / meter ** 2 = lx
+
+# Miscellaneous
+percent = 0.01 = %
+permille = 0.001 = ‰
+ppm = 1e-6
+ppb = 1e-9
+pixel = [] = px = pel
+
+# Aliases
+velocity = meter / second
+acceleration = meter / second ** 2
+speed_of_light = 299792458 * meter / second = c = c_0

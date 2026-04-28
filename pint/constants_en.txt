@@ -1,0 +1,71 @@
+# Physical constants
+
+# Speed of light
+speed_of_light = 299792458 * meter / second = c = c_0
+
+# Planck constant
+planck_constant = 6.62607015e-34 * joule * second = h = ℎ
+hbar = planck_constant / (2 * 3.141592653589793) = ℏ = h_bar
+
+# Elementary charge
+elementary_charge = 1.602176634e-19 * coulomb = e
+
+# Boltzmann constant
+boltzmann_constant = 1.380649e-23 * joule / kelvin = k_B = k
+
+# Avogadro constant
+avogadro_number = 6.02214076e23 / mole = N_A = avogadro_constant = avogadro
+
+# Gas constant
+gas_constant = boltzmann_constant * avogadro_number = R
+
+# Stefan-Boltzmann constant
+stefan_boltzmann_constant = 5.670374419e-8 * watt / meter ** 2 / kelvin ** 4 = σ = sigma
+
+# Gravitational constant
+gravitational_constant = 6.67430e-11 * meter ** 3 / kilogram / second ** 2 = G = newtonian_constant_of_gravitation
+
+# Standard gravity
+standard_gravity = 9.80665 * meter / second ** 2 = g_0 = g0 = g_n = gravity
+
+# Vacuum permittivity
+vacuum_permittivity = 8.8541878128e-12 * farad / meter = ε_0 = epsilon_0 = electric_constant
+
+# Vacuum permeability
+vacuum_permeability = 1.25663706212e-6 * henry / meter = µ_0 = mu_0 = magnetic_constant
+
+# Electron mass
+electron_mass = 9.1093837015e-31 * kilogram = m_e
+
+# Proton mass
+proton_mass = 1.67262192369e-27 * kilogram = m_p
+
+# Neutron mass
+neutron_mass = 1.67492749804e-27 * kilogram = m_n
+
+# Atomic mass constant
+atomic_mass_constant = 1.66053906660e-27 * kilogram = m_u
+
+# Fine structure constant
+fine_structure_constant = 7.2973525693e-3 = α = alpha
+
+# Rydberg constant
+rydberg_constant = 10973731.568160 / meter = R_∞ = R_inf
+
+# Bohr radius
+bohr_radius = 5.29177210903e-11 * meter = a_0 = a0
+
+# Classical electron radius
+classical_electron_radius = 2.8179403262e-15 * meter = r_e
+
+# Faraday constant
+faraday_constant = elementary_charge * avogadro_number = F
+
+# Molar gas constant
+molar_gas_constant = gas_constant
+
+# Standard atmosphere
+standard_atmosphere = 101325 * pascal = atm
+
+# Standard state pressure
+standard_state_pressure = 100000 * pascal = p_0
