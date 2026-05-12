@@ -378,15 +378,14 @@ class Quantity:
         return f"<Quantity({self._magnitude}, '{self._units}')>"
 
     def __str__(self):
-        units_str = _format_units(self._units)
-        if not units_str or units_str == "dimensionless":
-            return str(self._magnitude)
-        return f"{self._magnitude} {units_str}"
+        from .formatting import format_quantity
+        return format_quantity(self._magnitude, self._units, "", self._registry)
 
     def __format__(self, spec):
         if not spec:
             return str(self)
-        return spec.format(self)
+        from .formatting import format_quantity
+        return format_quantity(self._magnitude, self._units, spec, self._registry)
 
     @property
     def compatible_units(self):

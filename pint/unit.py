@@ -103,8 +103,14 @@ class Unit:
         return f"<Unit('{self._unit_map}')>"
 
     def __str__(self):
-        from .quantity import _format_units
-        return _format_units(self._unit_map)
+        from .formatting import format_unit
+        return format_unit(self._unit_map, "D", self._registry)
+
+    def __format__(self, spec):
+        if not spec:
+            return str(self)
+        from .formatting import format_unit
+        return format_unit(self._unit_map, spec, self._registry)
 
     @property
     def compatible_units(self):
