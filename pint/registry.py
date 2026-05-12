@@ -503,6 +503,61 @@ class UnitRegistry:
         from .measurement import Measurement
         return Measurement(value, error, units, registry=self)
 
+    def get_compatible_units(self, dimension_or_units):
+        if isinstance(dimension_or_units, str):
+            if dimension_or_units.startswith("["):
+                target_dim = UnitMap({dimension_or_units: 1})
+            else:
+                target_dim = self.get_dimensionality(dimension_or_units)
+        elif isinstance(dimension_or_units, UnitMap):
+            target_dim = self._compute_dimensionality(dimension_or_units)
+        else:
+            target_dim = dimension_or_units
+
+        result = set()
+        for uname in self._units:
+            try:
+                udim = self._compute_dimensionality(UnitMap({uname: 1}))
+                if udim == target_dim:
+                    result.add(uname)
+            except Exception:
+                pass
+        return result
+
+    def check(self, *dimensions):
+        def decorator(func):
+            import functools
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                for i, (arg, dim_spec) in enumerate(zip(args, dimensions)):
+                    if dim_spec is None:
+                        continue
+                    if isinstance(dim_spec, str) and dim_spec.startswith("["):
+                        expected_dim = UnitMap({dim_spec: 1})
+                    elif isinstance(dim_spec, str):
+                        expected_dim = self.get_dimensionality(dim_spec)
+                    else:
+                        expected_dim = dim_spec
+
+                    if isinstance(arg, (int, float)):
+                        if bool(expected_dim):
+                            raise IncompatibleDimensionError(
+                                "dimensionless", str(expected_dim),
+                                "dimensionless", str(expected_dim)
+                            )
+                    else:
+                        from .quantity import Quantity
+                        if isinstance(arg, Quantity):
+                            actual_dim = arg.dimensionality
+                            if actual_dim != expected_dim:
+                                raise IncompatibleDimensionError(
+                                    str(arg._units), str(expected_dim),
+                                    str(actual_dim), str(expected_dim)
+                                )
+                return func(*args, **kwargs)
+            return wrapper
+        return decorator
+
     @property
     def sys(self):
         return _SystemAccess(self)

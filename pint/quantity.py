@@ -129,6 +129,94 @@ class Quantity:
     def to_reduced_units(self):
         return self.to_base_units()
 
+    def is_compatible_with(self, other):
+        if isinstance(other, Quantity):
+            return self.dimensionality == other.dimensionality
+        if isinstance(other, str):
+            try:
+                other_dim = self._registry.get_dimensionality(other)
+                return self.dimensionality == other_dim
+            except Exception:
+                return False
+        from .unit import Unit
+        if isinstance(other, Unit):
+            return self.dimensionality == other.dimensionality
+        return False
+
+    def to_compact(self, unit=None):
+        if unit is not None:
+            return self.to(unit)
+
+        if not self._units._data:
+            return Quantity(self._magnitude, self._units, registry=self._registry)
+
+        if len(self._units._data) != 1:
+            return Quantity(self._magnitude, self._units, registry=self._registry)
+
+        unit_name = list(self._units._data.keys())[0]
+        unit_exp = list(self._units._data.values())[0]
+        if unit_exp != 1:
+            return Quantity(self._magnitude, self._units, registry=self._registry)
+
+        base_mag = abs(self._magnitude)
+        if base_mag == 0:
+            return Quantity(self._magnitude, self._units, registry=self._registry)
+
+        best_name = unit_name
+        best_mag = self._magnitude
+        best_score = abs(math.log10(base_mag)) if base_mag > 0 else 0
+
+        base_unit = self._find_base_unit_name(unit_name)
+        if base_unit is None:
+            base_unit = unit_name
+
+        _DECIMAL_PREFIXES = {
+            "quecto", "ronto", "yocto", "zepto", "atto", "femto", "pico",
+            "nano", "micro", "milli", "centi", "deci",
+            "deca", "hecto", "kilo", "mega", "giga", "tera",
+            "peta", "exa", "zetta", "yotta", "ronna", "quetta",
+        }
+
+        prefix_factors = sorted(
+            [(pn, pd.factor) for pn, pd in self._registry._prefixes.items()
+             if pn in _DECIMAL_PREFIXES],
+            key=lambda x: x[1]
+        )
+
+        for pname, pfactor in prefix_factors:
+            prefixed = pname + base_unit
+            try:
+                conv = self._registry.get_conversion_factor(
+                    self._units, UnitMap({prefixed: 1})
+                )
+                new_mag = abs(self._magnitude * conv)
+                if new_mag == 0:
+                    continue
+                score = abs(math.log10(new_mag))
+                if score < best_score:
+                    best_score = score
+                    best_name = prefixed
+                    best_mag = self._magnitude * conv
+            except Exception:
+                continue
+
+        if best_name == unit_name:
+            return Quantity(self._magnitude, self._units, registry=self._registry)
+
+        return self.to(best_name)
+
+    def _find_base_unit_name(self, unit_name):
+        if unit_name in self._registry._units:
+            udef = self._registry._units[unit_name]
+            if udef.is_base:
+                return unit_name
+        for pname in self._registry._prefixes:
+            if unit_name.startswith(pname) and len(unit_name) > len(pname):
+                remainder = unit_name[len(pname):]
+                if remainder in self._registry._units:
+                    return remainder
+        return None
+
     def _check_same_registry(self, other):
         if isinstance(other, Quantity):
             return other._registry is self._registry

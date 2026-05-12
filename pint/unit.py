@@ -40,6 +40,17 @@ class Unit:
     def dimensionless(self):
         return not bool(self.dimensionality)
 
+    def is_compatible_with(self, other):
+        if isinstance(other, Unit):
+            return self.dimensionality == other.dimensionality
+        if isinstance(other, str):
+            try:
+                other_dim = self._registry.get_dimensionality(other)
+                return self.dimensionality == other_dim
+            except Exception:
+                return False
+        return False
+
     def __mul__(self, other):
         if isinstance(other, Unit):
             return Unit(self._unit_map * other._unit_map, registry=self._registry)

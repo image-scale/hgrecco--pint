@@ -1,19 +1,18 @@
 # Acceptance Criteria
 
-## Tasks 1-4: Previous tasks
+## Tasks 1-5: Previous tasks
 (completed)
 
-## Task 5: Measurement class with uncertainty
+## Task 6: Dimensionality analysis features
 
 ### Acceptance Criteria
-- [ ] Measurement can be created from a value quantity and an error quantity: Measurement(4.0, 0.1, "s")
-- [ ] Measurement exposes .value (as Quantity), .error (as Quantity), and .rel (relative error)
-- [ ] Measurement can be created from two Quantities: Measurement(Q(4, "s"), Q(0.1, "s"))
-- [ ] Measurement addition propagates error: sqrt(err1^2 + err2^2)
-- [ ] Measurement subtraction propagates error: sqrt(err1^2 + err2^2)
-- [ ] Measurement multiplication propagates relative error: sqrt(rel1^2 + rel2^2) * result
-- [ ] Measurement division propagates relative error: sqrt(rel1^2 + rel2^2) * result
-- [ ] Measurement can be multiplied/divided by a scalar (error scales proportionally)
-- [ ] str() formats as "value +/- error unit"
-- [ ] Measurement can be converted to different units preserving the relative error
-- [ ] Measurement has .magnitude and .units properties matching the value
+- [ ] is_compatible_with() method checks if two quantities share the same dimensionality
+- [ ] Q(1, "meter").is_compatible_with(Q(1, "kilometer")) returns True
+- [ ] Q(1, "meter").is_compatible_with(Q(1, "second")) returns False
+- [ ] to_compact() converts to a unit with a prefix that minimizes the magnitude: Q(0.001, "meter").to_compact() ≈ Q(1, "millimeter")
+- [ ] to_compact() on Q(1500, "meter") gives something like Q(1.5, "kilometer")
+- [ ] A @check decorator validates function argument dimensionality at call time
+- [ ] @check('[length]', '[time]') on a function raises error if called with wrong dimensions
+- [ ] compatible_units() returns a set of unit names sharing the same dimensionality
+- [ ] Q(1, "meter").compatible_units includes "kilometer", "centimeter", etc.
+- [ ] The registry's get_compatible_units("[length]") returns all length units
