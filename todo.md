@@ -4,7 +4,7 @@
 Build pint from the user-facing core outward. Start with the central Quantity class that users interact with most, backed by a UnitRegistry and unit definition parser. Then layer on formatting, temperature/offset units, measurement uncertainty, and advanced features. Each task delivers complete, testable user-facing functionality.
 
 ## Tasks
-- [ ] Task 1: Implement a unit registry that loads unit definitions from a text file, parses prefixes/units/dimensions/constants, and can create Quantity objects with a numeric magnitude and units that support conversion between compatible units (e.g., kilometers to meters), dimensional analysis, and basic arithmetic (+, -, *, /, **)
+- [>] Task 1: Implement a unit registry that loads unit definitions from a text file, parses prefixes/units/dimensions/constants, and can create Quantity objects with a numeric magnitude and units that support conversion between compatible units (e.g., kilometers to meters), dimensional analysis, and basic arithmetic (+, -, *, /, **)
 - [ ] Task 2: Implement unit parsing from strings with support for compound expressions (e.g., "meter / second ** 2"), prefix resolution (e.g., "kilometer" → kilo + meter), pluralization (e.g., "meters"), and aliases/symbols (e.g., "m" for meter, "kg" for kilogram)
 - [ ] Task 3: Implement rich formatting for quantities and units supporting multiple output styles: default representation, compact/abbreviated notation using symbols, and LaTeX-compatible math output for scientific documents
 - [ ] Task 4: Implement temperature and offset unit handling so that conversions between Celsius, Fahrenheit, Kelvin, and Rankine work correctly, including proper distinction between absolute temperature values and temperature differences (delta)

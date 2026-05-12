@@ -1,0 +1,37 @@
+# Pint unit definitions file
+# Based on the International System of Units
+
+# Mathematical and physical constants
+pi = 3.14159265358979323846 = π
+speed_of_light = 299792458 m/s = c = c_0
+planck_constant = 6.62607015e-34 J * s = ℎ
+elementary_charge = 1.602176634e-19 C = e
+avogadro_number = 6.02214076e23
+boltzmann_constant = 1.380649e-23 J / K = k = k_B
+standard_gravity = 9.80665 m / s ** 2 = g_0 = g0 = g_n = gravity
+standard_atmosphere = 1.01325e5 Pa = atm = atmosphere
+newtonian_constant_of_gravitation = 6.67430e-11 m ** 3 / kg / s ** 2 = gravitational_constant
+
+# Derived exact constants
+dirac_constant = ℎ / (2 * π) = ħ = hbar
+avogadro_constant = avogadro_number * mol ** -1 = N_A
+molar_gas_constant = k * N_A = R
+
+# Electromagnetic constants
+vacuum_permeability = 1.25663706212e-6 kg * m / A ** 2 / s ** 2 = µ_0 = mu_0 = mu0
+vacuum_permittivity = 8.8541878128e-12 A ** 2 * s ** 4 / kg / m ** 3 = ε_0 = epsilon_0 = eps_0 = eps0
+
+# Mass constants
+electron_mass = 9.1093837015e-31 kg = m_e
+proton_mass = 1.67262192369e-27 kg = m_p
+neutron_mass = 1.67492749804e-27 kg = m_n
+atomic_mass_constant = 1.66053906660e-27 kg = m_u
+
+# Densities
+conventional_water_density = 1000 kg / m ** 3
+conventional_mercury_density = 13595.1 kg / m ** 3
+
+# Other constants
+fine_structure_constant = 7.2973525693e-3 = α = alpha
+rydberg_constant = 1.0973731568160e7 / m = R_inf
+bohr_radius = 5.29177210903e-11 m = a_0 = a0
