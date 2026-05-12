@@ -21,6 +21,9 @@ class IncompatibleDimensionError(PintError, TypeError):
             msg += f" (dimensions '{self.dim_from}' and '{self.dim_to}' are incompatible)"
         return msg
 
+    def __reduce__(self):
+        return self.__class__, (self.units_from, self.units_to, self.dim_from, self.dim_to)
+
 
 class UnitNotFoundError(PintError, AttributeError):
     """Raised when a unit is not found in the registry."""
@@ -29,7 +32,10 @@ class UnitNotFoundError(PintError, AttributeError):
         self.unit_name = unit_name
 
     def __str__(self):
-        return f"Unit '{self.unit_name}' is not defined"
+        return f"Unit '{self.unit_name}' is not defined in the unit registry"
+
+    def __reduce__(self):
+        return self.__class__, (self.unit_name,)
 
 
 class DefinitionParsingError(PintError, ValueError):
@@ -44,6 +50,9 @@ class DefinitionParsingError(PintError, ValueError):
             return f"Error parsing definition: {self.msg} (line: '{self.line}')"
         return f"Error parsing definition: {self.msg}"
 
+    def __reduce__(self):
+        return self.__class__, (self.msg, self.line)
+
 
 class DuplicateDefinitionError(PintError, ValueError):
     """Raised when a unit is redefined."""
@@ -55,16 +64,24 @@ class DuplicateDefinitionError(PintError, ValueError):
     def __str__(self):
         return f"Cannot redefine '{self.name}' ({self.definition_type})"
 
+    def __reduce__(self):
+        return self.__class__, (self.name, self.definition_type)
+
 
 class OffsetUnitError(PintError, TypeError):
     """Raised for ambiguous operations with offset units (like temperature)."""
 
-    def __init__(self, units_from, units_to):
+    def __init__(self, units_from, units_to=None):
         self.units_from = units_from
         self.units_to = units_to
 
     def __str__(self):
-        return (
-            f"Ambiguous operation with offset unit(s): "
-            f"'{self.units_from}', '{self.units_to}'"
-        )
+        if self.units_to is not None:
+            return (
+                f"Ambiguous operation with offset unit(s): "
+                f"'{self.units_from}', '{self.units_to}'"
+            )
+        return f"Ambiguous operation with offset unit: '{self.units_from}'"
+
+    def __reduce__(self):
+        return self.__class__, (self.units_from, self.units_to)
