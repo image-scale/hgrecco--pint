@@ -436,3 +436,22 @@ clausius = calorie / kelvin = Cl
     yard
     pound
 @end
+
+
+#### CONTEXTS ####
+
+@context(n=1) spectroscopy = sp
+    [length] <-> [frequency]: speed_of_light / n / value
+    [frequency] -> [energy]: planck_constant * value
+    [energy] -> [frequency]: value / planck_constant
+@end
+
+@context boltzmann
+    [temperature] -> [energy]: boltzmann_constant * value
+    [energy] -> [temperature]: value / boltzmann_constant
+@end
+
+@context energy
+    [energy] -> [mass]: value / speed_of_light ** 2
+    [mass] -> [energy]: value * speed_of_light ** 2
+@end

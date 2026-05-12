@@ -4,7 +4,7 @@ import os
 import math
 import re
 from .unit_map import UnitMap
-from .definition_parser import DefinitionFile, UnitDef, PrefixDef, GroupDef, SystemDef
+from .definition_parser import DefinitionFile, UnitDef, PrefixDef, GroupDef, SystemDef, ContextDef
 from .converters import ScaleConverter, OffsetConverter, IdentityConverter
 from .errors import (
     IncompatibleDimensionError,
@@ -30,6 +30,9 @@ class UnitRegistry:
         self._base_units = []
         self._groups = {}
         self._systems = {}
+        self._contexts = {}
+        self._active_contexts = []
+        self._active_context_kwargs = []
         self._dim_cache = {}
         self._root_cache = {}
         self._conversion_cache = {}
@@ -83,6 +86,16 @@ class UnitRegistry:
                 name=name, base_units=sdef.base_units,
                 rules=sdef.rules, using=sdef.using, registry=self
             )
+
+        from .context import Context as CtxClass
+        for name, cdef in dfile.contexts.items():
+            ctx = CtxClass(
+                name=name, aliases=cdef.aliases,
+                defaults=cdef.defaults, rules=cdef.rules, registry=self
+            )
+            self._contexts[name] = ctx
+            for alias in cdef.aliases:
+                self._contexts[alias] = ctx
 
     def _build_cache(self):
         self._dim_cache.clear()
@@ -454,8 +467,15 @@ class UnitRegistry:
         dst_offset = self._find_offset_unit(dst_units)
 
         if not src_offset and not dst_offset:
-            factor = self.get_conversion_factor(src_units, dst_units)
-            return value * factor
+            try:
+                factor = self.get_conversion_factor(src_units, dst_units)
+                return value * factor
+            except IncompatibleDimensionError:
+                if self._active_contexts:
+                    result = self._convert_with_context(value, src_units, dst_units)
+                    if result is not None:
+                        return result
+                raise
 
         src_dim = self._compute_dimensionality(src_units)
         dst_dim = self._compute_dimensionality(dst_units)
@@ -505,6 +525,62 @@ class UnitRegistry:
                 if udef.converter.is_offset and units[uname] == 1:
                     return resolved
         return None
+
+    def context(self, name, **kwargs):
+        return _ContextManager(self, name, kwargs)
+
+    def _convert_with_context(self, value, src_units, dst_units):
+        src_dim = self._compute_dimensionality(src_units)
+        dst_dim = self._compute_dimensionality(dst_units)
+
+        src_scale, _ = self._compute_root_units(src_units)
+        base_value = value * src_scale
+
+        for ctx, ctx_kwargs in zip(reversed(self._active_contexts),
+                                    reversed(self._active_context_kwargs)):
+            for rule_src, rule_dst, expr_str in ctx._rules:
+                rule_src_dim = self._resolve_dim_string(rule_src)
+                rule_dst_dim = self._resolve_dim_string(rule_dst)
+                if rule_src_dim == src_dim and rule_dst_dim == dst_dim:
+                    result = ctx._eval_transform(expr_str, base_value, {**ctx._defaults, **ctx_kwargs})
+                    if result is not None:
+                        dst_scale, _ = self._compute_root_units(dst_units)
+                        return result / dst_scale
+
+        return None
+
+    def _resolve_dim_string(self, dim_str):
+        dim_str = dim_str.strip()
+        if dim_str.startswith("[") and dim_str.endswith("]") and " " not in dim_str:
+            dim_name = dim_str
+            if dim_name in self._dimensions:
+                ddef = self._dimensions[dim_name]
+                if ddef.reference is not None:
+                    return self._expand_derived_dim(ddef.reference)
+            return UnitMap({dim_name: 1})
+
+        from .context import parse_dimension_expr
+        dim_map = parse_dimension_expr(dim_str)
+        result = UnitMap({})
+        for dname, exp in dim_map._data.items():
+            if dname in self._dimensions and self._dimensions[dname].reference is not None:
+                expanded = self._expand_derived_dim(self._dimensions[dname].reference)
+                for k, v in expanded._data.items():
+                    result = UnitMap({**result._data, k: result._data.get(k, 0) + v * exp})
+            else:
+                result = UnitMap({**result._data, dname: result._data.get(dname, 0) + exp})
+        return UnitMap({k: v for k, v in result._data.items() if v != 0})
+
+    def _expand_derived_dim(self, ref_dict):
+        result = {}
+        for dname, exp in ref_dict.items():
+            if dname in self._dimensions and self._dimensions[dname].reference is not None:
+                inner = self._expand_derived_dim(self._dimensions[dname].reference)
+                for k, v in inner._data.items():
+                    result[k] = result.get(k, 0) + v * exp
+            else:
+                result[dname] = result.get(dname, 0) + exp
+        return UnitMap({k: v for k, v in result.items() if v != 0})
 
     def Quantity(self, magnitude, units=None):
         from .quantity import Quantity
@@ -646,3 +722,22 @@ class _SystemAccess:
 
     def __dir__(self):
         return list(self._registry._systems.keys())
+
+
+class _ContextManager:
+    def __init__(self, registry, name, kwargs):
+        self._registry = registry
+        self._name = name
+        self._kwargs = kwargs
+
+    def __enter__(self):
+        ctx = self._registry._contexts.get(self._name)
+        if ctx is None:
+            raise KeyError(f"Context '{self._name}' is not defined")
+        self._registry._active_contexts.append(ctx)
+        self._registry._active_context_kwargs.append(self._kwargs)
+        return self._registry
+
+    def __exit__(self, *args):
+        self._registry._active_contexts.pop()
+        self._registry._active_context_kwargs.pop()

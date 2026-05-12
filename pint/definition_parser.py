@@ -59,6 +59,14 @@ class SystemDef:
     rules: tuple = ()
 
 
+@dataclass
+class ContextDef:
+    name: str
+    aliases: tuple = ()
+    defaults: dict = field(default_factory=dict)
+    rules: tuple = ()
+
+
 def _strip_comment(line):
     in_string = False
     for i, ch in enumerate(line):
@@ -86,6 +94,7 @@ class DefinitionFile:
         self.constants = {}
         self.groups = {}
         self.systems = {}
+        self.contexts = {}
         self._name_to_canonical = {}
         self._loaded_files = set()
 
@@ -152,11 +161,14 @@ class DefinitionFile:
                 continue
 
             if line.startswith("@context"):
+                block_lines = []
                 while i < len(lines):
                     dline = _strip_comment(lines[i])
                     i += 1
                     if dline.strip() == "@end":
                         break
+                    block_lines.append(dline)
+                self._parse_context(line, block_lines)
                 continue
 
             self._parse_definition(line)
@@ -467,4 +479,55 @@ class DefinitionFile:
         self.systems[name] = SystemDef(
             name=name, using=using,
             base_units=tuple(base_units), rules=tuple(rules)
+        )
+
+    def _parse_context(self, header, body_lines):
+        header = header[len("@context"):].strip()
+
+        defaults = {}
+        if header.startswith("("):
+            paren_end = header.index(")")
+            defaults_str = header[1:paren_end]
+            for item in defaults_str.split(","):
+                item = item.strip()
+                if "=" in item:
+                    k, v = item.split("=", 1)
+                    try:
+                        defaults[k.strip()] = self._eval_numeric_expr(v.strip())
+                    except Exception:
+                        defaults[k.strip()] = 0
+            header = header[paren_end + 1:].strip()
+
+        aliases = ()
+        if "=" in header:
+            parts = header.split("=")
+            name = parts[0].strip()
+            aliases = tuple(p.strip() for p in parts[1:] if p.strip())
+        else:
+            name = header.strip()
+
+        rules = []
+        for line in body_lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            if ":" not in line:
+                continue
+
+            arrow_part, expr = line.split(":", 1)
+            expr = expr.strip()
+
+            if "<->" in arrow_part:
+                left, right = arrow_part.split("<->")
+                left = left.strip()
+                right = right.strip()
+                rules.append((left, right, expr))
+                rules.append((right, left, expr))
+            elif "->" in arrow_part:
+                left, right = arrow_part.split("->")
+                rules.append((left.strip(), right.strip(), expr))
+
+        self.contexts[name] = ContextDef(
+            name=name, aliases=aliases, defaults=defaults, rules=tuple(rules)
         )
