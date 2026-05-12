@@ -5,6 +5,7 @@ from .quantity import Quantity
 from .unit import Unit
 from .unit_map import UnitMap
 from .measurement import Measurement
+from .systems import Group, System
 from .errors import (
     PintError,
     IncompatibleDimensionError,
@@ -20,6 +21,8 @@ __all__ = [
     "Unit",
     "UnitMap",
     "Measurement",
+    "Group",
+    "System",
     "PintError",
     "IncompatibleDimensionError",
     "UnitNotFoundError",

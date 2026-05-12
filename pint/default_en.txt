@@ -343,3 +343,96 @@ molar = mole / liter = M
 #### ENTROPY ####
 
 clausius = calorie / kelvin = Cl
+
+
+#### GROUPS ####
+
+@group imperial
+    inch
+    foot
+    yard
+    mile
+    ounce
+    pound
+    stone
+    long_ton
+    imperial_gallon
+    imperial_quart
+    imperial_pint
+    imperial_fluid_ounce
+@end
+
+@group metric
+    meter
+    gram
+    liter
+    second
+    ampere
+    kelvin
+    mole
+    candela
+    hertz
+    newton
+    pascal
+    joule
+    watt
+    coulomb
+    volt
+    ohm
+    farad
+    weber
+    henry
+    tesla
+    lumen
+    lux
+    becquerel
+    gray
+    sievert
+    katal
+@end
+
+@group US using imperial
+    gallon
+    quart
+    pint_volume
+    cup
+    fluid_ounce
+    tablespoon
+    teaspoon
+    short_ton
+@end
+
+
+#### SYSTEMS ####
+
+@system SI
+    second
+    meter
+    kilogram
+    ampere
+    kelvin
+    mole
+    candela
+@end
+
+@system mks
+    meter
+    kilogram
+    second
+@end
+
+@system cgs
+    centimeter
+    gram
+    second
+@end
+
+@system imperial using imperial
+    yard
+    pound
+@end
+
+@system US using US
+    yard
+    pound
+@end

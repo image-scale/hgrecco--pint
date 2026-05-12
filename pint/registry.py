@@ -4,7 +4,7 @@ import os
 import math
 import re
 from .unit_map import UnitMap
-from .definition_parser import DefinitionFile, UnitDef, PrefixDef
+from .definition_parser import DefinitionFile, UnitDef, PrefixDef, GroupDef, SystemDef
 from .converters import ScaleConverter, OffsetConverter, IdentityConverter
 from .errors import (
     IncompatibleDimensionError,
@@ -28,6 +28,8 @@ class UnitRegistry:
         self._dimensions = {}
         self._name_map = {}
         self._base_units = []
+        self._groups = {}
+        self._systems = {}
         self._dim_cache = {}
         self._root_cache = {}
         self._conversion_cache = {}
@@ -68,6 +70,19 @@ class UnitRegistry:
 
             if udef.converter.is_offset and not udef.is_base:
                 self._create_delta_unit(name, udef)
+
+        from .systems import Group, System
+        for name, gdef in dfile.groups.items():
+            self._groups[name] = Group(
+                name=name, unit_names=gdef.unit_names,
+                using=gdef.using, registry=self
+            )
+
+        for name, sdef in dfile.systems.items():
+            self._systems[name] = System(
+                name=name, base_units=sdef.base_units,
+                rules=sdef.rules, using=sdef.using, registry=self
+            )
 
     def _build_cache(self):
         self._dim_cache.clear()
@@ -503,7 +518,7 @@ class UnitRegistry:
         from .measurement import Measurement
         return Measurement(value, error, units, registry=self)
 
-    def get_compatible_units(self, dimension_or_units):
+    def get_compatible_units(self, dimension_or_units, group=None):
         if isinstance(dimension_or_units, str):
             if dimension_or_units.startswith("["):
                 target_dim = UnitMap({dimension_or_units: 1})
@@ -522,6 +537,11 @@ class UnitRegistry:
                     result.add(uname)
             except Exception:
                 pass
+
+        if group is not None:
+            grp = self._groups.get(group) or self._systems.get(group)
+            if grp is not None:
+                result = result & grp.members
         return result
 
     def check(self, *dimensions):
@@ -562,7 +582,67 @@ class UnitRegistry:
     def sys(self):
         return _SystemAccess(self)
 
+    def get_group(self, name):
+        return self._groups.get(name)
+
+    def get_system(self, name):
+        return self._systems.get(name)
+
+    def get_base_units(self, units, system=None):
+        if isinstance(units, str):
+            units = self.parse_unit_string(units)
+        elif not isinstance(units, UnitMap):
+            from .unit import Unit
+            if isinstance(units, Unit):
+                units = units.unit_map
+
+        scale, base_units = self.get_root_units(units)
+
+        if system is not None:
+            sys_obj = self._systems.get(system)
+            if sys_obj is not None:
+                replacements = {}
+                for new_unit, old_unit in sys_obj.rules.items():
+                    resolved_old = self._resolve_unit_name(old_unit)
+                    resolved_new = self._resolve_unit_name(new_unit)
+                    if resolved_old and resolved_new:
+                        replacements[resolved_old] = resolved_new
+
+                for bu in sys_obj.base_units:
+                    if bu not in [r[0] for r in sys_obj.rules]:
+                        resolved_bu = self._resolve_unit_name(bu)
+                        if resolved_bu:
+                            bu_dim = self._compute_dimensionality(UnitMap({resolved_bu: 1}))
+                            for si_base in list(base_units._data.keys()):
+                                si_dim = self._compute_dimensionality(UnitMap({si_base: 1}))
+                                if si_dim == bu_dim and si_base != resolved_bu:
+                                    replacements[si_base] = resolved_bu
+
+                new_data = dict(base_units._data)
+                total_scale = scale
+                for old_unit, new_unit in replacements.items():
+                    if old_unit in new_data:
+                        exp = new_data.pop(old_unit)
+                        conv = self.get_conversion_factor(
+                            UnitMap({old_unit: 1}),
+                            UnitMap({new_unit: 1})
+                        )
+                        total_scale *= conv ** exp
+                        new_data[new_unit] = exp
+                return total_scale, UnitMap(new_data)
+
+        return scale, base_units
+
 
 class _SystemAccess:
     def __init__(self, registry):
         self._registry = registry
+
+    def __getattr__(self, name):
+        system = self._registry.get_system(name)
+        if system is not None:
+            return system
+        raise AttributeError(f"System '{name}' is not defined")
+
+    def __dir__(self):
+        return list(self._registry._systems.keys())

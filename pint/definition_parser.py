@@ -44,6 +44,21 @@ class ConstantDef:
     aliases: tuple = ()
 
 
+@dataclass
+class GroupDef:
+    name: str
+    using: tuple = ()
+    unit_names: tuple = ()
+
+
+@dataclass
+class SystemDef:
+    name: str
+    using: tuple = ()
+    base_units: tuple = ()
+    rules: tuple = ()
+
+
 def _strip_comment(line):
     in_string = False
     for i, ch in enumerate(line):
@@ -69,6 +84,8 @@ class DefinitionFile:
         self.dimensions = {}
         self.units = {}
         self.constants = {}
+        self.groups = {}
+        self.systems = {}
         self._name_to_canonical = {}
         self._loaded_files = set()
 
@@ -112,7 +129,29 @@ class DefinitionFile:
                 self._parse_alias(line)
                 continue
 
-            if line.startswith("@group") or line.startswith("@system") or line.startswith("@context"):
+            if line.startswith("@group"):
+                block_lines = []
+                while i < len(lines):
+                    dline = _strip_comment(lines[i])
+                    i += 1
+                    if dline.strip() == "@end":
+                        break
+                    block_lines.append(dline)
+                self._parse_group(line, block_lines)
+                continue
+
+            if line.startswith("@system"):
+                block_lines = []
+                while i < len(lines):
+                    dline = _strip_comment(lines[i])
+                    i += 1
+                    if dline.strip() == "@end":
+                        break
+                    block_lines.append(dline)
+                self._parse_system(line, block_lines)
+                continue
+
+            if line.startswith("@context"):
                 while i < len(lines):
                     dline = _strip_comment(lines[i])
                     i += 1
@@ -375,3 +414,57 @@ class DefinitionFile:
         if name in self.prefixes:
             return name
         return None
+
+    def _parse_group(self, header, body_lines):
+        header = header[len("@group"):].strip()
+        using = ()
+        if " using " in header:
+            name_part, using_part = header.split(" using ", 1)
+            name = name_part.strip()
+            using = tuple(g.strip() for g in using_part.split(",") if g.strip())
+        else:
+            name = header.strip()
+
+        unit_names = []
+        for line in body_lines:
+            line = line.strip()
+            if not line:
+                continue
+            self._parse_definition(line)
+            parts = _split_definition(line)
+            if parts:
+                uname = parts[0].strip()
+                if not uname.startswith("[") and not uname.endswith("-"):
+                    unit_names.append(uname)
+
+        self.groups[name] = GroupDef(
+            name=name, using=using, unit_names=tuple(unit_names)
+        )
+
+    def _parse_system(self, header, body_lines):
+        header = header[len("@system"):].strip()
+        using = ()
+        if " using " in header:
+            name_part, using_part = header.split(" using ", 1)
+            name = name_part.strip()
+            using = tuple(g.strip() for g in using_part.split(",") if g.strip())
+        else:
+            name = header.strip()
+
+        rules = []
+        base_units = []
+        for line in body_lines:
+            line = line.strip()
+            if not line:
+                continue
+            if ":" in line:
+                new_unit, old_unit = line.split(":", 1)
+                rules.append((new_unit.strip(), old_unit.strip()))
+                base_units.append(new_unit.strip())
+            else:
+                base_units.append(line)
+
+        self.systems[name] = SystemDef(
+            name=name, using=using,
+            base_units=tuple(base_units), rules=tuple(rules)
+        )
