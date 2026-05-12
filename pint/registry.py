@@ -499,6 +499,10 @@ class UnitRegistry:
         from .unit import Unit
         return Unit(units, registry=self)
 
+    def Measurement(self, value, error=None, units=None):
+        from .measurement import Measurement
+        return Measurement(value, error, units, registry=self)
+
     @property
     def sys(self):
         return _SystemAccess(self)
