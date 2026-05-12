@@ -24,23 +24,27 @@ class ScaleConverter:
 
 @dataclass(frozen=True)
 class OffsetConverter:
-    """Converts by applying scale + offset (e.g. temperature scales)."""
+    """Converts by applying scale + offset (e.g. temperature scales).
+
+    to_reference: value_ref = value * factor + offset
+    from_reference: value = (value_ref - offset) / factor
+    """
     factor: float
     offset: float
 
     @property
     def is_multiplicative(self):
-        return False
+        return self.offset == 0
 
     @property
     def is_offset(self):
         return True
 
     def to_reference(self, value):
-        return (value - self.offset) * self.factor
+        return value * self.factor + self.offset
 
     def from_reference(self, value):
-        return value / self.factor + self.offset
+        return (value - self.offset) / self.factor
 
 
 @dataclass(frozen=True)

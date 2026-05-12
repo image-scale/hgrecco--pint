@@ -66,6 +66,9 @@ class UnitRegistry:
             for a in udef.aliases:
                 self._name_map[a] = ("unit", name)
 
+            if udef.converter.is_offset and not udef.is_base:
+                self._create_delta_unit(name, udef)
+
     def _build_cache(self):
         self._dim_cache.clear()
         self._root_cache.clear()
@@ -82,6 +85,31 @@ class UnitRegistry:
                 self._compute_root_units(umap)
             except Exception:
                 pass
+
+    def _create_delta_unit(self, name, udef):
+        delta_name = "delta_" + name
+        delta_aliases = tuple("delta_" + a for a in udef.aliases)
+        delta_symbol = None
+        if udef.symbol:
+            delta_symbol = "Δ" + udef.symbol
+
+        delta_converter = ScaleConverter(factor=udef.converter.factor)
+        delta_ref = dict(udef.reference)
+
+        delta_udef = UnitDef(
+            name=delta_name,
+            converter=delta_converter,
+            reference=delta_ref,
+            symbol=delta_symbol,
+            aliases=delta_aliases,
+            is_base=False,
+        )
+        self._units[delta_name] = delta_udef
+        self._name_map[delta_name] = ("unit", delta_name)
+        if delta_symbol:
+            self._name_map[delta_symbol] = ("unit", delta_name)
+        for a in delta_aliases:
+            self._name_map[a] = ("unit", delta_name)
 
     def _dependency_order(self):
         resolved = set()
@@ -402,8 +430,66 @@ class UnitRegistry:
         return factor
 
     def convert(self, value, src_units, dst_units):
-        factor = self.get_conversion_factor(src_units, dst_units)
-        return value * factor
+        if isinstance(src_units, str):
+            src_units = self.parse_unit_string(src_units)
+        if isinstance(dst_units, str):
+            dst_units = self.parse_unit_string(dst_units)
+
+        src_offset = self._find_offset_unit(src_units)
+        dst_offset = self._find_offset_unit(dst_units)
+
+        if not src_offset and not dst_offset:
+            factor = self.get_conversion_factor(src_units, dst_units)
+            return value * factor
+
+        src_dim = self._compute_dimensionality(src_units)
+        dst_dim = self._compute_dimensionality(dst_units)
+        if src_dim != dst_dim:
+            raise IncompatibleDimensionError(
+                str(src_units), str(dst_units),
+                str(src_dim), str(dst_dim)
+            )
+
+        if src_offset:
+            src_udef = self._units[src_offset]
+            value = src_udef.converter.to_reference(value)
+            remaining_src = {k: v for k, v in src_units._data.items() if k != src_offset}
+            ref_units = dict(src_udef.reference)
+            for k, v in remaining_src.items():
+                ref_units[k] = ref_units.get(k, 0) + v
+            src_units = UnitMap({k: v for k, v in ref_units.items() if v != 0})
+
+        if dst_offset:
+            dst_udef = self._units[dst_offset]
+            remaining_dst = {k: v for k, v in dst_units._data.items() if k != dst_offset}
+            ref_units = dict(dst_udef.reference)
+            for k, v in remaining_dst.items():
+                ref_units[k] = ref_units.get(k, 0) + v
+            dst_units_for_mult = UnitMap({k: v for k, v in ref_units.items() if v != 0})
+        else:
+            dst_units_for_mult = dst_units
+
+        if src_units != dst_units_for_mult:
+            try:
+                factor = self.get_conversion_factor(src_units, dst_units_for_mult)
+                value = value * factor
+            except IncompatibleDimensionError:
+                pass
+
+        if dst_offset:
+            dst_udef = self._units[dst_offset]
+            value = dst_udef.converter.from_reference(value)
+
+        return value
+
+    def _find_offset_unit(self, units):
+        for uname in units:
+            resolved = self._resolve_unit_name(uname)
+            if resolved and resolved in self._units:
+                udef = self._units[resolved]
+                if udef.converter.is_offset and units[uname] == 1:
+                    return resolved
+        return None
 
     def Quantity(self, magnitude, units=None):
         from .quantity import Quantity
